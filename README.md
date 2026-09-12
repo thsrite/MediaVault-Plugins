@@ -21,7 +21,7 @@ https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json
 4. 在插件配置中启用「每小时检查」即可验证定时任务；点击同一按钮可取消定时。
 5. 当目录中的 `version` 高于已安装版本时，条目会显示「更新」，点击后按同一 `source` 和 `subdir` 安装新版本。
 
-GitHub 安装器会固定到某个 commit，并记录仓库、ref、commit 和包 SHA-256。目录条目的 `subdir` 以仓库根为基准，适合一个仓库包含多个插件。私有仓库令牌只从 MediaVault 的 `MV_GITHUB_TOKEN` 环境变量读取。
+GitHub 安装器会固定到某个 commit，并记录仓库、ref、commit 和包 SHA-256。目录条目的 `source` 支持 `github:owner/repo[@ref]`，`subdir` 以仓库根为基准，适合一个仓库发布多个插件。私有目录和私有插件仓库的令牌只从 MediaVault 的 `MV_GITHUB_TOKEN` 环境变量读取，不会写入目录或插件配置。
 
 ## 开发文档
 
