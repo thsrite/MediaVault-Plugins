@@ -27,7 +27,8 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(len(MANIFEST["events"]), 16)
         self.assertEqual(MANIFEST.get("permissions", []), [])
         self.assertEqual(MANIFEST["entrypoint"], "runner/main.py")
-        self.assertEqual(MANIFEST["ui"]["entry"], "ui/index.html")
+        self.assertEqual(MANIFEST["ui"]["schema"]["type"], "form")
+        self.assertEqual(MANIFEST["ui"]["schema"]["components"][0]["bind"], "label")
 
     def test_event_request_returns_event_identity_without_mv_dependency(self):
         process = run_plugin({
