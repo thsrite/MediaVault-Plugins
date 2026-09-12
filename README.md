@@ -6,9 +6,9 @@
 https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json
 ```
 
-示例插件 `event_audit` 会订阅 v1 事件目录中的全部事件，演示声明式配置页、action 和定时任务：
+示例插件 `event_audit` 会订阅 v1 事件目录中的全部事件，演示声明式配置页、action 和定时任务；事件订阅属于插件能力声明，不会显示在用户配置页：
 
-- `plugins/event-audit/mv-plugin.json`：插件 manifest，版本为 `1.0.0`。
+- `plugins/event-audit/mv-plugin.json`：插件 manifest，版本为 `1.0.1`。
 - `plugins/event-audit/runner/main.py`：只使用 Python 标准库，通过一次 stdin/stdout JSON 请求完成一次工作。
 - `ui.schema`：由 MediaVault 统一渲染的配置页面，只展示标签、下拉框和测试按钮；事件列表属于 manifest 元数据，不会重复展示给用户。
 - `schedules.hourly_check`：由 MediaVault 保存、启停和调度，插件不创建自己的 cron 或常驻进程。
