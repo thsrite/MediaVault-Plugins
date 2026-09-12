@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>事件审计示例</title>
+<style>
+  body { font: 14px system-ui; margin: 20px; color: #222; }
+  button { padding: 6px 10px; }
+  pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; }
+</style>
+<h2>事件审计示例</h2>
+<p>这个页面只通过 MV JSON bridge 读取脱敏配置，不访问 MV DOM 或网络。</p>
+<button id="preview">调用 preview action</button>
+<pre id="output">等待操作…</pre>
+<script>
+  const output = document.querySelector('#output')
+  const request = (action, payload = {}) => new Promise((resolve) => {
+    const requestId = crypto.randomUUID()
+    const listener = (event) => {
+      if (event.source !== parent || event.data?.request_id !== requestId) return
+      window.removeEventListener('message', listener)
+      resolve(event.data)
+    }
+    window.addEventListener('message', listener)
+    parent.postMessage({channel: 'mv-plugin', protocol_version: 1, request_id: requestId, action, payload}, '*')
+  })
+  document.querySelector('#preview').onclick = async () => {
+    output.textContent = JSON.stringify(await request('preview', {}), null, 2)
+  }
+</script>

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "event_audit",
+    "name": "事件审计示例",
+    "version": "1.0.0",
+    "description": "订阅全部公开事件，演示 runner、UI bridge 和定时任务。",
+    "source": "https://github.com/thsrite/MediaVault-Plugins/archive/refs/heads/main.zip",
+    "subdir": "plugins/event-audit",
+    "events": [
+      "media.uploaded", "media.upload_failed", "media.upload_skipped",
+      "strm.generated", "strm.failed", "library.sync_completed", "library.sync_failed",
+      "organize.completed", "organize.failed", "subscription.completed", "subscription.failed",
+      "download.completed", "download.failed", "backup.completed", "backup.failed", "webhook.received"
+    ],
+    "sha256": ""
+  }
+]

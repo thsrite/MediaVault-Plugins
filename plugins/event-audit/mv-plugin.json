@@ -1,0 +1,27 @@
+{
+  "manifest_version": 1,
+  "id": "event_audit",
+  "name": "事件审计示例",
+  "version": "1.0.0",
+  "description": "展示所有公开事件并演示 UI bridge",
+  "runtime": "python3-stdlib",
+  "entrypoint": "runner/main.py",
+  "events": [
+    "media.uploaded", "media.upload_failed", "media.upload_skipped",
+    "strm.generated", "strm.failed", "library.sync_completed", "library.sync_failed",
+    "organize.completed", "organize.failed", "subscription.completed", "subscription.failed",
+    "download.completed", "download.failed", "backup.completed", "backup.failed", "webhook.received"
+  ],
+  "config_schema": {
+    "type": "object",
+    "properties": {"label": {"type": "string", "maxLength": 80}},
+    "additionalProperties": false
+  },
+  "actions": {
+    "preview": {"title": "预览协议", "input_schema": {"type": "object", "additionalProperties": false}}
+  },
+  "schedules": [
+    {"id": "hourly_check", "title": "每小时检查", "default_cron": "0 * * * *"}
+  ],
+  "ui": {"entry": "ui/index.html"}
+}
