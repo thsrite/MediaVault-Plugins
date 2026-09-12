@@ -43,6 +43,8 @@ class ProtocolTests(unittest.TestCase):
         self.assertTrue(response["ok"])
         self.assertEqual(response["result"]["event_id"], "event-1")
         self.assertEqual(response["result"]["event_type"], "media.uploaded")
+        self.assertEqual(response["logs"][0]["level"], "info")
+        self.assertEqual(response["logs"][0]["fields"]["event_type"], "media.uploaded")
 
     def test_action_request_returns_payload(self):
         process = run_plugin({
