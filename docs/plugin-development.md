@@ -5,12 +5,12 @@
 第三方插件是独立源码包。MediaVault 不加载它的 Python 模块，而是为每次事件、action 或定时任务启动一次隔离进程：
 
 ```text
-MediaVault ── JSON stdin ──> bubblewrap + /usr/bin/python3 -I -S ── JSON stdout ──> MediaVault
+MediaVault ── JSON stdin ──> bubblewrap + /usr/bin/python3 -S ── JSON stdout ──> MediaVault
 ```
 
 插件代码不得导入 `app`、`mediavault` 或任何 MV Python 对象。双方只交换版本化 JSON。插件不得创建常驻服务、线程、cron、shell、数据库连接或任意 HTTP 客户端。
 
-隔离器清空环境并禁用网络、PID/IPC/user namespace，丢弃全部 capability，只读挂载插件目录为 `/plugin` 和 Python 标准库；不会挂载 `/app`、MV 配置目录、数据库、home 或 socket。没有 Linux bubblewrap 时拒绝执行，不会回退到普通子进程。
+隔离器清空环境并禁用网络、PID/IPC/user namespace，丢弃全部 capability，只读挂载插件目录为 `/plugin` 和 Python 标准库；声明的固定版本依赖会只读挂载到 `/plugin_deps` 并通过 `PYTHONPATH` 提供。不会挂载 `/app`、MV 配置目录、数据库、home 或 socket。插件进程没有宿主环境变量。没有 Linux bubblewrap 时拒绝执行，不会回退到普通子进程。
 
 ## 2. 可安装包格式
 
@@ -55,6 +55,8 @@ MediaVault 接受压缩包 HTTP(S) 或 `github:owner/repo[@ref]` 形式的 `sour
   "runtime": "python3-stdlib",
   "entrypoint": "runner/main.py",
   "events": ["media.uploaded"],
+  "dependencies": [],
+  "permissions": [],
   "config_schema": {
     "type": "object",
     "properties": {"label": {"type": "string", "maxLength": 80}},
@@ -77,10 +79,10 @@ MediaVault 接受压缩包 HTTP(S) 或 `github:owner/repo[@ref]` 形式的 `sour
 
 - `id`：小写字母开头，长度 2–64，只能使用小写字母、数字、`_`、`-`。
 - `version`：SemVer。每个版本目录不可覆盖，`current` 由 MediaVault 原子切换。
-- `runtime`：v1 固定为 `python3-stdlib`；不运行 `setup.py`、`pyproject.toml` 或安装 pip/npm 依赖。
+- `runtime`：v1 固定为 `python3-stdlib`；不运行 `setup.py`、`pyproject.toml` 或安装脚本。依赖必须写成固定版本的 PyPI 包（如 `requests==2.32.3`），由用户安装插件时安装并持久化。
 - `entrypoint`：只能是包内 `.py` 文件；禁止路径穿越、符号链接、`.so`、`.pyd`、`.pyc` 和重复 zip 条目。
 - `events`：只能填写事件目录中的名称；重复项会被去重。
-- `permissions`：v1 必须为空，插件不能自行声明核心权限。
+- `permissions`：只能声明 `notifications.send` 或 `media.identify`；每项能力都由宿主校验，不能自行访问 MV 组件。
 - `schedules`：最多 16 项，每项包含 `id`、`title` 和可选 `default_cron`。
 
 GitHub 支持 `owner/repo`、`github:owner/repo@ref` 和 `tree` 地址。安装器会先把 ref 解析为 commit SHA，再下载固定 commit；可选 SHA-256 用于阻止包被替换。
@@ -94,6 +96,23 @@ runner 每次只读取一行 JSON，输出一个 JSON 对象后退出。成功�
 ```
 
 失败可返回 `{"ok": false, "error": "可读错误"}` 或使用非零退出码。stdout 上限 1 MiB，单次执行超时 60 秒。事件失败最多重试 8 次，并使用指数退避；插件 stderr 不会作为可信日志返回。
+
+### 配置、存储、通知与日志
+
+插件不能读取环境变量、MV 配置文件、数据库或宿主日志组件。需要配置的字段必须写入 `config_schema`，管理员在 MV 插件页面保存后，runner 会从请求的 `config` 对象读取。需要持久化的小数据使用请求里的 `storage` 快照，并在响应中返回 `storage: {"set": {...}, "delete": [...]}`；宿主会按插件隔离、加密、原子保存。
+
+声明 `notifications.send` 后，响应可返回 `notifications` 数组，由宿主统一发送；插件不接触通知渠道、token 或核心服务。日志同样使用 JSON 响应，不导入任何 MV 模块：
+
+```python
+logs = []
+def log(level, message, **fields):
+    logs.append({"level": level, "message": message, "fields": fields})
+
+log("info", "开始处理", item_count=3)
+return {"ok": True, "result": {"processed": 3}, "logs": logs}
+```
+
+`level` 支持 `debug`、`info`、`warning`、`error`、`critical`；宿主限制条数和长度，统一添加 `[插件][名称]` 前缀，脱敏后写入 `mediavault.log`。插件页面的“查看日志”使用 `/api/v1/logs/plugin/{plugin_id}`，支持增量刷新、级别/关键词筛选、下载和定时任务运行记录。不要在 `message` 或 `fields` 中放 token、Cookie、密码或完整 URL 凭据。
 
 ### 事件请求
 
@@ -217,7 +236,7 @@ python3 -m json.tool mv-plugin.json >/dev/null
 
 1. 单个插件目录内只有一个 `mv-plugin.json`；多插件仓库根目录用 `catalog.json` 列出插件和 `subdir`。
 2. 每个目录条目的 `id` 唯一、`version` 为 SemVer，升级版本后检查「更新」按钮。
-3. runner 不导入 `app`、`mediavault`，不依赖第三方包。
+3. runner 不导入 `app`、`mediavault`，不读取环境变量；第三方依赖必须在 manifest 中固定版本声明。
 4. UI 无远程资源、iframe、form 和外部提交地址。
 5. 每个事件、action、schedule 都能处理未知字段而不泄露敏感数据。
 6. 事件处理具备幂等性，失败时返回明确错误。

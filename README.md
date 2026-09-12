@@ -15,13 +15,13 @@ https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json
 
 ## 安装示例
 
-1. 在 MediaVault 容器环境变量中配置 `MV_PLUGIN_CATALOG_URL=https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json`，然后打开 设置中心 → 插件 → 第三方插件。
+1. 打开 MediaVault 设置中心 → 插件 → 第三方插件 → 第三方插件维护，在页面中添加下面的公开 catalog 地址：`https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json`。公开插件库不需要配置环境变量。
 2. 目录会同时列出未安装和已安装的插件；在「事件审计示例」条目点击安装。
 3. 打开配置并保存 JSON；需要接收事件时再启用插件。
 4. 在插件配置中启用「每小时检查」即可验证定时任务；点击同一按钮可取消定时。
 5. 当目录中的 `version` 高于已安装版本时，条目会显示「更新」，点击后按同一 `source` 和 `subdir` 安装新版本。
 
-GitHub 安装器会固定到某个 commit，并记录仓库、ref、commit 和包 SHA-256。目录条目的 `source` 支持 `github:owner/repo[@ref]`，`subdir` 以仓库根为基准，适合一个仓库发布多个插件。私有目录和私有插件仓库的令牌只从 MediaVault 的 `MV_GITHUB_TOKEN` 环境变量读取，不会写入目录或插件配置。
+GitHub 安装器会固定到某个 commit，并记录仓库、ref、commit 和包 SHA-256。目录条目的 `source` 支持 `github:owner/repo[@ref]`，`subdir` 以仓库根为基准，适合一个仓库发布多个插件。公开仓库和公开 catalog 不需要环境变量；只有管理员主动安装私有 GitHub 仓库时，MediaVault 才从宿主环境变量 `MV_GITHUB_TOKEN` 读取令牌。这个变量只给宿主下载器使用，不会注入插件进程。
 
 ## 开发文档
 
@@ -31,6 +31,7 @@ GitHub 安装器会固定到某个 commit，并记录仓库、ref、commit 和�
 - 全部公开事件、事件 envelope 和失败重试；
 - UI iframe bridge 的消息格式与允许动作；
 - 定时任务声明、启用、取消和重启恢复；
+- 宿主加密存储、通知权限、辅助识别和结构化日志；
 - bubblewrap 隔离边界与禁止事项；
 - 本地测试和发布检查清单。
 
@@ -46,4 +47,4 @@ python3 -m unittest discover -s tests -v
 
 ## 安全边界
 
-插件代码永远不会被 import 到 MediaVault 进程，也不能导入 `app`、`mediavault` 或访问 MV 的配置、数据库、token、socket、文件系统和任意网络。不要把密钥写进 manifest、UI、事件 payload 或日志。
+插件代码永远不会被 import 到 MediaVault 进程，也不能导入 `app`、`mediavault` 或访问 MV 的配置、数据库、token、socket、文件系统和任意网络。插件运行时环境变量会被清空；配置必须声明 `config_schema`，由管理员在 MV 页面填写并由宿主加密保存。不要把密钥写进 manifest、UI、事件 payload 或日志。
