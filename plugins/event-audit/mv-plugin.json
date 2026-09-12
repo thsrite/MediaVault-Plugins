@@ -3,7 +3,7 @@
   "id": "event_audit",
   "name": "事件审计示例",
   "version": "1.0.1",
-  "description": "展示所有公开事件并演示 UI bridge",
+  "description": "演示声明式配置页、测试 action 和定时任务",
   "runtime": "python3-stdlib",
   "entrypoint": "runner/main.py",
   "events": [
