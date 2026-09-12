@@ -14,7 +14,10 @@
   ],
   "config_schema": {
     "type": "object",
-    "properties": {"label": {"type": "string", "maxLength": 80}},
+    "properties": {
+      "label": {"type": "string", "maxLength": 80},
+      "mode": {"type": "string", "enum": ["compact", "detailed"]}
+    },
     "additionalProperties": false
   },
   "actions": {
@@ -23,5 +26,19 @@
   "schedules": [
     {"id": "hourly_check", "title": "每小时检查", "default_cron": "0 * * * *"}
   ],
-  "ui": {"entry": "ui/index.html"}
+  "ui": {
+    "schema": {
+      "type": "form",
+      "title": "事件审计设置",
+      "description": "选择审计输出方式并保存。事件订阅由插件能力声明管理。",
+      "components": [
+        {"type": "text", "bind": "label", "label": "显示标签", "placeholder": "例如：媒体归档", "description": "用于日志中区分这套审计配置。"},
+        {"type": "select", "bind": "mode", "label": "审计详情", "default": "compact", "options": [
+          {"label": "简要", "value": "compact"},
+          {"label": "详细", "value": "detailed"}
+        ]},
+        {"type": "button", "id": "preview", "action": "preview", "label": "发送测试事件"}
+      ]
+    }
+  }
 }

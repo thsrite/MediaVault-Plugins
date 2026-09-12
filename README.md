@@ -6,18 +6,18 @@
 https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json
 ```
 
-示例插件 `event_audit` 会订阅 v1 事件目录中的全部事件，演示三种入口：
+示例插件 `event_audit` 会订阅 v1 事件目录中的全部事件，演示声明式配置页、action 和定时任务：
 
 - `plugins/event-audit/mv-plugin.json`：插件 manifest，版本为 `1.0.0`。
 - `plugins/event-audit/runner/main.py`：只使用 Python 标准库，通过一次 stdin/stdout JSON 请求完成一次工作。
-- `plugins/event-audit/ui/index.html`：自包含插件界面，只通过 `postMessage` 调用已声明的 `preview` action。
+- `ui.schema`：由 MediaVault 统一渲染的配置页面，只展示标签、下拉框和测试按钮；事件列表属于 manifest 元数据，不会重复展示给用户。
 - `schedules.hourly_check`：由 MediaVault 保存、启停和调度，插件不创建自己的 cron 或常驻进程。
 
 ## 安装示例
 
 1. 打开 MediaVault 设置中心 → 插件 → 第三方插件 → 第三方插件维护，在页面中添加下面的公开 catalog 地址：`https://raw.githubusercontent.com/thsrite/MediaVault-Plugins/main/catalog.json`。公开插件库不需要配置环境变量。
 2. 目录会同时列出未安装和已安装的插件；在「事件审计示例」条目点击安装。
-3. 打开配置并保存 JSON；需要接收事件时再启用插件。
+3. 打开配置，填写显示标签和审计详情后点击保存；需要接收事件时再启用插件。
 4. 在插件配置中启用「每小时检查」即可验证定时任务；点击同一按钮可取消定时。
 5. 当目录中的 `version` 高于已安装版本时，条目会显示「更新」，点击后按同一 `source` 和 `subdir` 安装新版本。
 

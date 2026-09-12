@@ -3,7 +3,7 @@
     "id": "event_audit",
     "name": "事件审计示例",
     "version": "1.0.0",
-    "description": "订阅全部公开事件，演示 runner、UI bridge 和定时任务。",
+    "description": "订阅全部公开事件，演示声明式配置页、action 和定时任务。",
     "source": "github:thsrite/MediaVault-Plugins",
     "subdir": "plugins/event-audit",
     "events": [

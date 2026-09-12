@@ -71,7 +71,21 @@ MediaVault 接受压缩包 HTTP(S) 或 `github:owner/repo[@ref]` 形式的 `sour
   "schedules": [
     {"id": "hourly_check", "title": "每小时检查", "default_cron": "0 * * * *"}
   ],
-  "ui": {"entry": "ui/index.html"}
+  "ui": {
+    "schema": {
+      "type": "form",
+      "title": "事件审计设置",
+      "description": "只放用户需要填写或点击的配置项。",
+      "components": [
+        {"type": "text", "bind": "label", "label": "显示标签"},
+        {"type": "select", "bind": "mode", "label": "审计详情", "options": [
+          {"label": "简要", "value": "compact"},
+          {"label": "详细", "value": "detailed"}
+        ]},
+        {"type": "button", "action": "preview", "label": "发送测试事件"}
+      ]
+    }
+  }
 }
 ```
 
@@ -172,7 +186,26 @@ action 输入必须符合 manifest 的 `input_schema`，未知字段应拒绝。
 
 事件名、payload 字段和版本只能向后兼容扩展；删除或改变语义需要升级 `event_version`。事件目录中尚未接入业务完成边界的事件不会被伪造触发。
 
-## 5. UI bridge
+## 5. 声明式配置页组件
+
+优先使用 `ui.schema`，由 MediaVault 统一渲染，插件源码不接触 React/Vue 或 MediaVault 组件。顶层结构固定为 `type: form` 和 `components` 数组，每个组件只能使用以下类型：
+
+| 类型 | 用途 | 必填字段 |
+| --- | --- | --- |
+| `text` | 单行文本 | `bind`, `label` |
+| `password` | 密钥输入（宿主脱敏保存） | `bind`, `label` |
+| `number` | 数值输入 | `bind`, `label` |
+| `textarea` | 多行文本 | `bind`, `label` |
+| `select` | 固定选项 | `bind`, `label`, `options` |
+| `switch` | 布尔开关 | `bind`, `label` |
+| `button` | 调用 manifest 中的 action | `action`, `label` |
+| `notice` | 说明文字 | `description` 或 `label` |
+
+字段组件的 `bind` 必须对应 `config_schema.properties` 中的字段；`select.options` 只允许固定的 `label`/`value`。用户修改字段后点击宿主提供的“保存配置”提交，按钮 action 通过 JSON bridge 调用。事件列表、权限、版本和依赖是插件元数据，不能作为配置页面内容重复展示。
+
+每个插件最多 32 个组件，未知组件会被宿主拒绝安装。`ui.schema` 与 `ui.entry` 不能同时使用；需要完全自定义页面时仍可使用兼容的 `ui.entry` HTML 模式。
+
+## 6. UI bridge
 
 `ui.entry` 必须是 `ui/` 下不超过 1 MiB 的自包含 HTML。CSS、JavaScript、图片必须内联；禁止远程脚本、字体、网络请求、iframe、form、外部 `src/href/action` 和 `allow-same-origin`。
 
@@ -202,7 +235,7 @@ v1 内置 bridge 只允许：
 
 bridge 不提供任意 HTTP、SQL、shell、核心路由、用户 token、React/Vue 组件或特权对象。
 
-## 6. 定时任务
+## 7. 定时任务
 
 插件只在 manifest 中声明任务，MediaVault 负责保存、启用、取消和重启恢复：
 
@@ -225,7 +258,7 @@ bridge 不提供任意 HTTP、SQL、shell、核心路由、用户 token、React/
 
 定时任务与事件共享隔离、60 秒超时和错误记录；同一任务不会并发执行。插件不得自己创建 cron、线程常驻服务或系统任务。
 
-## 7. 发布检查清单
+## 8. 发布检查清单
 
 ```bash
 python3 -m unittest discover -s tests -v
