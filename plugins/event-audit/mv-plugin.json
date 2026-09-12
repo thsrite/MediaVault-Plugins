@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "id": "event_audit",
   "name": "事件审计示例",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "展示所有公开事件并演示 UI bridge",
   "runtime": "python3-stdlib",
   "entrypoint": "runner/main.py",
