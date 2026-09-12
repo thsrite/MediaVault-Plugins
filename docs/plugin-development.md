@@ -41,7 +41,7 @@ ui/index.html
 ]
 ```
 
-MediaVault 只接受 HTTP(S) `source`、SemVer `version`、安全的相对 `subdir`、可选 64 位十六进制 `sha256` 和公开事件名。`id` 必须唯一。已安装插件按 `id` 与目录条目配对；目录版本高于本地版本时显示「更新」，更新会下载新版本并原子切换 `current`，旧版本目录保留以便回滚。
+MediaVault 接受压缩包 HTTP(S) 或 `github:owner/repo[@ref]` 形式的 `source`、SemVer `version`、安全的相对 `subdir`、可选 64 位十六进制 `sha256` 和公开事件名。`id` 必须唯一。已安装插件按 `id` 与目录条目配对；目录版本高于本地版本时显示「更新」，更新会下载新版本并原子切换 `current`，旧版本目录保留以便回滚。私有目录 URL 和私有插件仓库共用 `MV_GITHUB_TOKEN`，令牌仅通过请求头发送。
 
 ### Manifest
 
